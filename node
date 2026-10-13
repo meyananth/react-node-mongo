@@ -37,13 +37,18 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://localhost:3001'
-            }
-        }
+     stage('Health Check') {
+    steps {
+        bat '''
+for /L %%i in (1,1,12) do (
+  curl -sf http://localhost:3001 >nul && exit /b 0
+  ping -n 6 127.0.0.1 >nul
+)
+exit /b 1
+'''
+        bat 'curl -sf http://localhost:5000'
     }
+}
 
     post {
         success { echo 'Deployment succeeded' }
