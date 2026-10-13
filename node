@@ -4,7 +4,7 @@ pipeline {
     tools { nodejs 'node20' }
 
     environment {
-        EC2_HOST = '16.170.242.242'
+        EC2_HOST = 'ubuntu@16.170.242.242'
     }
 
     stages {
@@ -25,12 +25,12 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS') {
+           stage('Deploy to AWS') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'aws-key', keyFileVariable: 'KEY')]) {
                     bat '''
                     icacls "%KEY%" /inheritance:r
-                    icacls "%KEY%" /grant:r "%USERNAME%:R"
+                    icacls "%KEY%" /grant:r "SYSTEM:R"
                     ssh -i "%KEY%" -o StrictHostKeyChecking=no %EC2_HOST% "cd react-node-mongo && git pull origin main && docker compose down && docker compose up -d --build && docker compose ps"
                     '''
                 }
