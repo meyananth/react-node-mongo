@@ -4,19 +4,22 @@ pipeline {
     tools { nodejs 'node20' }
 
     stages {
-        stage('Debug') {
-            steps {
-                bat 'dir'
-                bat 'dir /s /b package.json | findstr /v node_modules'
-            }
-        }
-
         stage('Build Frontend') {
             steps {
-                dir('client') {
+                dir('frontend') {
                     bat 'node -v'
                     bat 'call npm install'
                     bat 'call npm run build'
+                    bat 'dir'
+                }
+            }
+        }
+
+        stage('Check Backend') {
+            steps {
+                dir('backend') {
+                    bat 'call npm install'
+                    bat 'dir'
                 }
             }
         }
