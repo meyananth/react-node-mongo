@@ -3,6 +3,10 @@ pipeline {
 
     tools { nodejs 'node20' }
 
+    environment {
+        EC2_HOST = '16.170.242.242'
+    }
+
     stages {
         stage('Build Frontend') {
             steps {
@@ -21,35 +25,28 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Deploy to AWS') {
             steps {
-                bat 'docker --version'
-                bat 'docker build -t react-node-frontend ./frontend'
-                bat 'docker build -t react-node-backend ./backend'
-            }
-        }
-
-        stage('Docker Deploy') {
-            steps {
-                bat 'docker compose down'
-                bat 'docker compose up -d --build'
-                bat 'docker compose ps'
+                withCredentials([sshUserPrivateKey(credentialsId: 'aws-key', keyFileVariable: 'KEY')]) {
+                    bat '''
+                    icacls "%KEY%" /inheritance:r
+                    icacls "%KEY%" /grant:r "%USERNAME%:R"
+                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %EC2_HOST% "cd react-node-mongo && git pull origin main && docker compose down && docker compose up -d --build && docker compose ps"
+                    '''
+                }
             }
         }
 
         stage('Health Check') {
             steps {
                 bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://localhost:3000'
+                bat 'curl -f http://<ec2-public-ip>:3000'
             }
         }
     }
 
     post {
         success { echo 'Deployment succeeded' }
-        failure {
-            echo 'Deployment failed, check the stage logs'
-            bat 'docker compose logs --tail 50'
-        }
+        failure { echo 'Deployment failed, check the stage logs' }
     }
 }
