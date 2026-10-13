@@ -25,9 +25,9 @@ pipeline {
             }
         }
 
-                stage('Deploy to AWS') {
+                 stage('Deploy to AWS') {
             steps {
-                withCredentials([file(credentialsId: 'aws-key', variable: 'KEY')]) {
+                withCredentials([file(credentialsId: 'aws-key-file', variable: 'KEY')]) {
                     bat '''
                     icacls "%KEY%" /inheritance:r
                     icacls "%KEY%" /grant:r "SYSTEM:R"
