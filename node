@@ -7,10 +7,8 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'node -v'
                     bat 'call npm install'
                     bat 'call npm run build'
-                    bat 'dir'
                 }
             }
         }
@@ -19,14 +17,39 @@ pipeline {
             steps {
                 dir('backend') {
                     bat 'call npm install'
-                    bat 'dir'
                 }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker --version'
+                bat 'docker build -t react-node-frontend ./frontend'
+                bat 'docker build -t react-node-backend ./backend'
+            }
+        }
+
+        stage('Docker Deploy') {
+            steps {
+                bat 'docker compose down'
+                bat 'docker compose up -d --build'
+                bat 'docker compose ps'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                bat 'ping -n 11 127.0.0.1 > nul'
+                bat 'curl -f http://localhost:3000'
             }
         }
     }
 
     post {
-        success { echo 'Build succeeded' }
-        failure { echo 'Build failed, check the stage logs' }
+        success { echo 'Deployment succeeded' }
+        failure {
+            echo 'Deployment failed, check the stage logs'
+            bat 'docker compose logs --tail 50'
+        }
     }
 }
