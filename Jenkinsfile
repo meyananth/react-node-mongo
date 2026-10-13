@@ -34,13 +34,12 @@ pipeline {
             }
         }
 
-        stage('Docker Deploy') {
-            steps {
-                bat 'docker compose down --remove-orphans'
-                bat 'docker compose up -d --build'
-                bat 'docker compose ps'
-            }
-        }
+      stage('Docker Build Check') {
+    steps {
+        bat 'docker build -t react-node-backend ./backend'
+        bat 'docker build -t react-node-frontend ./frontend'
+    }
+}
         stage('Deploy to EC2') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'deploy-key', keyFileVariable: 'KEY')]) {
