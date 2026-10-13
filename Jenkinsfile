@@ -7,15 +7,14 @@ pipeline {
         APP_DIR  = '/home/ubuntu/react-node-mongo/server'
     }
 
-    stages {
-        stage('Build Frontend') {
-            steps {
-                dir('client') {
-                    sh 'npm install'
-                    sh 'npm run build'
-                }
-            }
+  stage('Build Frontend') {
+    steps {
+        dir('client') {
+            bat 'npm install'
+            bat 'npm run build'
         }
+    }
+}
 
         stage('Deploy Backend') {
             steps {
