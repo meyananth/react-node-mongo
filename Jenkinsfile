@@ -40,11 +40,6 @@ pipeline {
         bat 'docker build -t react-node-frontend ./frontend'
     }
 }
-def deployTier(String host, String file, String envVars) {
-    bat "tar -cf app.tar --exclude=node_modules --exclude=build --exclude=.git backend frontend ${file}"
-    bat "scp -i \"%KEY%\" -o StrictHostKeyChecking=no -o ConnectTimeout=15 app.tar ubuntu@${host}:/home/ubuntu/app.tar"
-    bat "ssh -i \"%KEY%\" -o StrictHostKeyChecking=no -o ConnectTimeout=15 ubuntu@${host} \"mkdir -p ~/app && tar -xf ~/app.tar -C ~/app && cd ~/app && ${envVars} docker compose -f ${file} up -d --build\""
-}
 
         stage('Health Check') {
             steps {
