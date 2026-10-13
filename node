@@ -4,7 +4,7 @@ pipeline {
     tools { nodejs 'node20' }
 
     environment {
-        EC2_HOST = 'ubuntu@16.170.242.242'
+        EC2_HOST = 'ec2-user@16.170.242.242'
     }
 
     stages {
