@@ -25,9 +25,9 @@ pipeline {
             }
         }
 
-           stage('Deploy to AWS') {
+                stage('Deploy to AWS') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'aws-key', keyFileVariable: 'KEY')]) {
+                withCredentials([file(credentialsId: 'aws-key', variable: 'KEY')]) {
                     bat '''
                     icacls "%KEY%" /inheritance:r
                     icacls "%KEY%" /grant:r "SYSTEM:R"
@@ -36,7 +36,6 @@ pipeline {
                 }
             }
         }
-
         stage('Health Check') {
             steps {
                 bat 'ping -n 11 127.0.0.1 > nul'
