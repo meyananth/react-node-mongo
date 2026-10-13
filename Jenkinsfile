@@ -52,9 +52,8 @@ exit /b 1
         }
     }
 
-    post {
-        always  { bat 'del /q app.tar 2>nul' }
-        success { echo 'Deployment succeeded' }
-        failure { echo 'Deployment failed, check the stage logs' }
-    }
+   post {
+    success { echo 'Deployment succeeded' }
+    failure { echo 'Deployment failed, check the stage logs' }
+}
 }
