@@ -40,7 +40,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://<ec2-public-ip>:3000'
+                bat 'curl -f 16.170.242.242:3000'
             }
         }
     }
