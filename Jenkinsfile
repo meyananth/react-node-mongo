@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        EC2_HOST = 'YOUR-ELASTIC-IP'
+        EC2_HOST = '13.51.xxx.xxx'
         SSH_OPTS = '-o StrictHostKeyChecking=no'
     }
 
@@ -28,18 +28,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-key', keyFileVariable: 'KEY')]) {
-                    bat '''
-icacls "%KEY%" /inheritance:r /grant:r "%USERNAME%:R"
+stage('Deploy to EC2') {
+    steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'deploy-key', keyFileVariable: 'KEY')]) {
+            bat '''
+for /f "delims=" %%u in ('whoami') do icacls "%KEY%" /inheritance:r /grant:r "%%u:R"
 tar -cf app.tar --exclude=node_modules --exclude=build --exclude=.git backend frontend docker-compose.yml
 scp -i "%KEY%" %SSH_OPTS% app.tar ubuntu@%EC2_HOST%:/home/ubuntu/app.tar
 ssh -i "%KEY%" %SSH_OPTS% ubuntu@%EC2_HOST% "mkdir -p ~/app && tar -xf ~/app.tar -C ~/app && cd ~/app && docker compose down --remove-orphans; docker compose up -d --build"
 '''
-                }
-            }
         }
+    }
+}
 
         stage('Health Check') {
             steps {
