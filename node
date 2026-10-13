@@ -4,14 +4,15 @@ pipeline {
     tools { nodejs 'node20' }
 
     environment {
-       EC2_HOST = 'ec2-user@ec2-16-170-242-242.eu-north-1.compute.amazonaws.com'
+        EC2_HOST = 'ec2-user@ec2-16-170-242-242.eu-north-1.compute.amazonaws.com'
+        APP_URL  = 'http://ec2-16-170-242-242.eu-north-1.compute.amazonaws.com:3000'
     }
 
     stages {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'call npm install'
+                    bat 'call npm ci'
                     bat 'call npm run build'
                 }
             }
@@ -20,26 +21,26 @@ pipeline {
         stage('Check Backend') {
             steps {
                 dir('backend') {
-                    bat 'call npm install'
+                    bat 'call npm ci'
                 }
             }
         }
 
-                 stage('Deploy to AWS') {
+        stage('Deploy to AWS') {
             steps {
                 withCredentials([file(credentialsId: 'aws-key-file', variable: 'KEY')]) {
                     bat '''
                     icacls "%KEY%" /inheritance:r
-                    icacls "%KEY%" /grant:r "SYSTEM:R"
-                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %EC2_HOST% "cd react-node-mongo && git pull origin main && docker compose down && docker compose up -d --build && docker compose ps"
+                    icacls "%KEY%" /grant:r "%USERNAME%:R"
+                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %EC2_HOST% "cd react-node-mongo && git pull origin main && docker compose up -d --build && docker compose ps"
                     '''
                 }
             }
         }
+
         stage('Health Check') {
             steps {
-                bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://ec2-16-170-242-242.eu-north-1.compute.amazonaws.com:3000'
+                bat 'curl -f --retry 6 --retry-delay 5 --retry-connrefused %APP_URL%'
             }
         }
     }
