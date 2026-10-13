@@ -2,51 +2,69 @@ pipeline {
     agent any
 
     environment {
-        APP_HOST = 'ubuntu@<app-public-ip>'
-        WEB_HOST = 'ubuntu@<web-public-ip>'
-        APP_DIR  = '/home/ubuntu/react-node-mongo/server'
+        APP_HOST = '172.31.45.167'
+        WEB_HOST = '172.31.36.214'
+        APP_DIR  = '/home/ubuntu/<repo>/server'
     }
 
     stages {
         stage('Build Frontend') {
             steps {
                 dir('client') {
-                    bat 'call npm ci'
-                    bat 'call npm run build'
+                    sh 'npm ci && npm run build'
+                }
+            }
+        }
+
+        stage('Deploy Backend') {
+         pipeline {
+    agent any
+
+    environment {
+        APP_HOST = 'ubuntu@<app-private-ip>'
+        WEB_HOST = 'ubuntu@<web-private-ip>'
+        APP_DIR  = '/home/ubuntu/<repo>/server'
+    }
+
+    stages {
+        stage('Build Frontend') {
+            steps {
+                dir('client') {
+                    sh 'npm ci && npm run build'
                 }
             }
         }
 
         stage('Deploy Backend') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-key', keyFileVariable: 'KEY')]) {
-                    bat '''
-                    icacls "%KEY%" /inheritance:r
-                    icacls "%KEY%" /grant:r "%USERNAME%:R"
-                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %APP_HOST% "mkdir -p %APP_DIR%"
-                    scp -i "%KEY%" -o StrictHostKeyChecking=no -r server\\* %APP_HOST%:%APP_DIR%/
-                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %APP_HOST% "cd %APP_DIR% && npm ci --omit=dev && (pm2 restart api || pm2 start server.js --name api) && pm2 save"
-                    '''
+                sshagent(credentials: ['deploy-key']) {
+                    sh 'rsync -az --delete --exclude node_modules --exclude .env -e "ssh -o StrictHostKeyChecking=no" server/ $APP_HOST:$APP_DIR/'
+                    sh 'ssh -o StrictHostKeyChecking=no $APP_HOST "cd $APP_DIR && npm ci --omit=dev && (pm2 restart api || pm2 start server.js --name api)"'
                 }
             }
         }
 
         stage('Deploy Frontend') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'deploy-key', keyFileVariable: 'KEY')]) {
-                    bat '''
-                    icacls "%KEY%" /inheritance:r
-                    icacls "%KEY%" /grant:r "%USERNAME%:R"
-                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %WEB_HOST% "rm -rf /var/www/html/*"
-                    scp -i "%KEY%" -o StrictHostKeyChecking=no -r client\\build\\* %WEB_HOST%:/var/www/html/
-                    '''
+                sshagent(credentials: ['deploy-key']) {
+                    sh 'rsync -az --delete -e "ssh -o StrictHostKeyChecking=no" client/build/ $WEB_HOST:/var/www/html/'
+                }
+            }
+        }
+    }
+}   steps {
+                sshagent(credentials: ['deploy-key']) {
+                    sh 'rsync -az --delete --exclude node_modules --exclude .env -e "ssh -o StrictHostKeyChecking=no" server/ $APP_HOST:$APP_DIR/'
+                    sh 'ssh -o StrictHostKeyChecking=no $APP_HOST "cd $APP_DIR && npm ci --omit=dev && (pm2 restart api || pm2 start server.js --name api)"'
                 }
             }
         }
 
-        stage('Health Check') {
+        stage('Deploy Frontend') {
             steps {
-                bat 'curl -f http://<web-public-ip>/api/<route>'
+                sshagent(credentials: ['deploy-key']) {
+                    sh 'rsync -az --delete -e "ssh -o StrictHostKeyChecking=no" client/build/ $WEB_HOST:/var/www/html/'
+                }
             }
         }
     }
