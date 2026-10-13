@@ -4,7 +4,7 @@ pipeline {
     tools { nodejs 'node20' }
 
     environment {
-        EC2_HOST = 'ec2-16-170-242-242.eu-north-1.compute.amazonaws.com'
+       EC2_HOST = 'ec2-user@ec2-16-170-242-242.eu-north-1.compute.amazonaws.com'
     }
 
     stages {
@@ -39,7 +39,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f 16.170.242.242:3000'
+                bat 'curl -f http://ec2-16-170-242-242.eu-north-1.compute.amazonaws.com:3000'
             }
         }
     }
