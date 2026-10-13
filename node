@@ -37,13 +37,12 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://localhost:3001'
-            }
-        }
+ stage('Health Check') {
+    steps {
+        bat 'powershell -Command "for($i=0;$i -lt 12;$i++){try{Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Out-Null; exit 0}catch{Start-Sleep 5}}; exit 1"'
+        bat 'curl.exe -f http://localhost:5000'
     }
+}
 
     post {
         success { echo 'Deployment succeeded' }
