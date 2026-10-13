@@ -4,7 +4,7 @@ pipeline {
     environment {
         APP_HOST = '172.31.45.167'
         WEB_HOST = '172.31.36.214'
-        APP_DIR  = '/home/ubuntu/<repo>/server'
+        APP_DIR  = 'https://github.com/meyananth/react-node-mongo.git
     }
 
     stages {
