@@ -26,17 +26,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS') {
-            steps {
-                withCredentials([file(credentialsId: 'aws-key-file', variable: 'KEY')]) {
-                    bat '''
-                    icacls "%KEY%" /inheritance:r
-                    icacls "%KEY%" /grant:r "%USERNAME%:R"
-                    ssh -i "%KEY%" -o StrictHostKeyChecking=no %EC2_HOST% "cd react-node-mongo && git pull origin main && docker compose up -d --build && docker compose ps"
-                    '''
-                }
-            }
-        }
+  
 
         stage('Health Check') {
             steps {
