@@ -3,16 +3,11 @@ pipeline {
 
     tools { nodejs 'node20' }
 
-    environment {
-        EC2_HOST = 'ec2-user@ec2-16-170-242-242.eu-north-1.compute.amazonaws.com'
-        APP_URL  = 'http://ec2-16-170-242-242.eu-north-1.compute.amazonaws.com:3000'
-    }
-
     stages {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'call npm ci'
+                    bat 'call npm install'
                     bat 'call npm run build'
                 }
             }
@@ -21,22 +16,40 @@ pipeline {
         stage('Check Backend') {
             steps {
                 dir('backend') {
-                    bat 'call npm ci'
+                    bat 'call npm install'
                 }
             }
         }
 
-  
+        stage('Docker Build') {
+            steps {
+                bat 'docker --version'
+                bat 'docker build -t react-node-frontend ./frontend'
+                bat 'docker build -t react-node-backend ./backend'
+            }
+        }
+
+        stage('Docker Deploy') {
+            steps {
+                bat 'docker compose down'
+                bat 'docker compose up -d --build'
+                bat 'docker compose ps'
+            }
+        }
 
         stage('Health Check') {
             steps {
-                bat 'curl -f --retry 6 --retry-delay 5 --retry-connrefused %APP_URL%'
+                bat 'ping -n 11 127.0.0.1 > nul'
+                bat 'curl -f http://localhost:3000'
             }
         }
     }
 
     post {
         success { echo 'Deployment succeeded' }
-        failure { echo 'Deployment failed, check the stage logs' }
+        failure {
+            echo 'Deployment failed, check the stage logs'
+            bat 'docker compose logs --tail 50'
+        }
     }
 }
