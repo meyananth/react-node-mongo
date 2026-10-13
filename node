@@ -1,14 +1,16 @@
 pipeline {
     agent any
 
-    tools { nodejs 'node20' }
+    tools {
+        nodejs 'node20'
+    }
 
     stages {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'call npm install'
-                    bat 'call npm run build'
+                    bat 'npm install'
+                    bat 'npm run build'
                 }
             }
         }
@@ -16,7 +18,7 @@ pipeline {
         stage('Check Backend') {
             steps {
                 dir('backend') {
-                    bat 'call npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -31,27 +33,24 @@ pipeline {
 
         stage('Docker Deploy') {
             steps {
-                bat 'docker compose down'
+                bat 'docker compose down --remove-orphans'
                 bat 'docker compose up -d --build'
                 bat 'docker compose ps'
             }
         }
 
-     stage('Health Check') {
-    steps {
-        bat '''
-for /L %%i in (1,1,12) do (
-  curl -sf http://localhost:3001 >nul && exit /b 0
-  ping -n 6 127.0.0.1 >nul
-)
-exit /b 1
-'''
-        bat 'curl -sf http://localhost:5000'
+        stage('Health Check') {
+            steps {
+                bat 'ping -n 16 127.0.0.1 > nul'
+                bat 'curl -f http://localhost:3001'
+            }
+        }
     }
-}
 
     post {
-        success { echo 'Deployment succeeded' }
+        success {
+            echo 'Deployment succeeded'
+        }
         failure {
             echo 'Deployment failed, check the stage logs'
             bat 'docker compose logs --tail 50'
