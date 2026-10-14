@@ -37,13 +37,15 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                bat 'ping -n 11 127.0.0.1 > nul'
-                bat 'curl -f http://localhost:3000'
-            }          // closes steps
-        }              // closes stage
-    }                  // closes stages
+       stage('Health Check') {
+    steps {
+        retry(10) {
+            bat 'ping -n 11 127.0.0.1 >nul'
+            bat 'curl -f http://localhost:3000'
+        }
+        bat 'curl -f http://localhost:5000'
+    }
+}
     post {
         success { echo 'Deployment succeeded' }
         failure {
