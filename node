@@ -1,24 +1,22 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'node20'
-    }
+    tools { nodejs 'node20' }
 
     stages {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'npm install'
-                    bat 'npm run build'
+                    bat 'call npm install'
+                    bat 'call npm run build'
                 }
-           }
+            }
         }
-    }
-stage('Check Backend') {
+
+        stage('Check Backend') {
             steps {
                 dir('backend') {
-                    bat 'npm install'
+                    bat 'call npm install'
                 }
             }
         }
@@ -30,10 +28,10 @@ stage('Check Backend') {
                 bat 'docker build -t react-node-backend ./backend'
             }
         }
-         
+
         stage('Docker Deploy') {
             steps {
-                bat 'docker compose down --remove-orphans'
+                bat 'docker compose down'
                 bat 'docker compose up -d --build'
                 bat 'docker compose ps'
             }
@@ -41,17 +39,17 @@ stage('Check Backend') {
 
         stage('Health Check') {
             steps {
-                bat 'ping -n 16 127.0.0.1 > nul'
-                bat 'curl -f http://localhost:3001'
+                bat 'ping -n 11 127.0.0.1 > nul'
+                bat 'curl -f http://localhost:3000'
             }
         }
-}
+    }
+
     post {
-        success {
-            echo 'Deployment succeeded'
-        }
+        success { echo 'Deployment succeeded' }
         failure {
             echo 'Deployment failed, check the stage logs'
             bat 'docker compose logs --tail 50'
         }
     }
+}
