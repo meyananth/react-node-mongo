@@ -15,18 +15,7 @@ pipeline {
                 }
             }
         }
-    stages {
-        stage('Clean') {
-            steps {
-                sh 'rm -rf frontend'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'npm install'
-            }
-
-        stage('Check Backend') {
+           stage('Check Backend') {
             steps {
                 dir('backend') {
                     bat 'npm install'
