@@ -37,16 +37,18 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                retry(10) {
-                    bat 'ping -n 11 127.0.0.1 >nul'
-                    bat 'curl -f http://localhost:3000'
-                }
-                bat 'curl -f http://localhost:5000'
-            }
+       stage('Health Check') {
+    steps {
+        retry(10) {
+            bat 'ping -n 11 127.0.0.1 >nul'
+            bat 'curl -f http://localhost:3000'
         }
-    }   
+        retry(5) {
+            bat 'ping -n 6 127.0.0.1 >nul'
+            bat 'curl -f http://localhost:5000/health'
+        }
+    }
+}
 
     post {
         failure {
