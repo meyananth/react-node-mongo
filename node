@@ -12,11 +12,9 @@ pipeline {
                     bat 'npm install'
                     bat 'npm run build'
                 }
-                steps {
-                    sh 'rm -rf frontend'
-                    }
-            }
+           }
         }
+
            stage('Check Backend') {
             steps {
                 dir('backend') {
@@ -32,7 +30,9 @@ pipeline {
                 bat 'docker build -t react-node-backend ./backend'
             }
         }
-
+            steps {
+                    sh 'rm -rf frontend'
+                }
         stage('Docker Deploy') {
             steps {
                 bat 'docker compose down --remove-orphans'
