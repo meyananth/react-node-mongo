@@ -14,9 +14,7 @@ pipeline {
                 }
            }
         }
-   steps {
-                    sh 'rm -rf frontend'
-                }
+
            stage('Check Backend') {
             steps {
                 dir('backend') {
