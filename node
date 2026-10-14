@@ -41,7 +41,7 @@ pipeline {
             steps {
                 retry(10) {
                     bat 'ping -n 11 127.0.0.1 > nul'
-                    bat 'curl -f http://localhost:3001'
+                    bat 'curl -f http://localhost:3000'
                 }
 
                 // Uncomment after adding and pushing the /health route in the backend:
