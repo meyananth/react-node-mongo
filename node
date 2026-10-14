@@ -41,10 +41,9 @@ pipeline {
             steps {
                 bat 'ping -n 11 127.0.0.1 > nul'
                 bat 'curl -f http://localhost:3000'
-            }
-        }
-    }
-
+            }          // closes steps
+        }              // closes stage
+    }                  // closes stages
     post {
         success { echo 'Deployment succeeded' }
         failure {
