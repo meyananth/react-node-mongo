@@ -37,20 +37,21 @@ pipeline {
             }
         }
 
-       stage('Health Check') {
-    steps {
-        retry(10) {
-            bat 'ping -n 11 127.0.0.1 >nul'
-            bat 'curl -f http://localhost:3000'
+        stage('Health Check') {
+            steps {
+                retry(10) {
+                    bat 'ping -n 11 127.0.0.1 >nul'
+                    bat 'curl -f http://localhost:3000'
+                }
+                bat 'curl -f http://localhost:5000'
+            }
         }
-        bat 'curl -f http://localhost:5000'
-    }
-}
+    }   
+
     post {
-        success { echo 'Deployment succeeded' }
         failure {
             echo 'Deployment failed, check the stage logs'
-            bat 'docker compose logs --tail 50'
+            bat 'docker compose logs --tail 50 frontend'
         }
     }
-}
+}       
