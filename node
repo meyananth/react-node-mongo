@@ -11,6 +11,7 @@ pipeline {
                 dir('frontend') {
                     bat 'npm install'
                     bat 'npm run build'
+                    rm -r forntend
                 }
             }
         }
