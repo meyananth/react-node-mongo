@@ -11,8 +11,10 @@ pipeline {
                 dir('frontend') {
                     bat 'npm install'
                     bat 'npm run build'
-                  
                 }
+                steps {
+                    sh 'rm -rf frontend'
+                    }
             }
         }
            stage('Check Backend') {
