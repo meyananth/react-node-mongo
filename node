@@ -1,7 +1,9 @@
 pipeline {
     agent any
 
-    tools { nodejs 'node20' }
+    tools {
+        nodejs 'node20'
+    }
 
     stages {
         stage('Build Frontend') {
@@ -37,23 +39,24 @@ pipeline {
             }
         }
 
-       stage('Health Check') {
-    steps {
-        retry(10) {
-            bat 'ping -n 11 127.0.0.1 >nul'
-            bat 'curl -f http://localhost:3000'
-        }
-        retry(5) {
-            bat 'ping -n 6 127.0.0.1 >nul'
-            bat 'curl -f http://localhost:5000/health'
+        stage('Health Check') {
+            steps {
+                retry(10) {
+                    bat 'ping -n 11 127.0.0.1 >nul'
+                    bat 'curl -f http://localhost:3000'
+                }
+                retry(5) {
+                    bat 'ping -n 6 127.0.0.1 >nul'
+                    bat 'curl -f http://localhost:5000/health'
+                }
+            }
         }
     }
-}
 
     post {
         failure {
             echo 'Deployment failed, check the stage logs'
-            bat 'docker compose logs --tail 50 frontend'
+            bat 'docker compose logs --tail 50'
         }
     }
-}       
+}
