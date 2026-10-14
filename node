@@ -15,6 +15,31 @@ pipeline {
            }
         }
 
+    stages {
+        stage('Clean') {
+            steps {
+                sh 'rm -rf frontend'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh '''
+                    cd backend
+                    npm install
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Done'
+        }
+    }
+}
+
+
            stage('Check Backend') {
             steps {
                 dir('backend') {
