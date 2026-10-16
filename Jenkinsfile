@@ -44,20 +44,18 @@ pipeline {
                                   credentialsId: 'aws-creds',
                                   accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    // Start instance if stopped and wait until ready
+                    
                     bat '''
                     aws ec2 start-instances --instance-ids %INSTANCE_ID% --region %AWS_REGION%
                     aws ec2 wait instance-running --instance-ids %INSTANCE_ID% --region %AWS_REGION%
                     aws ec2 wait instance-status-ok --instance-ids %INSTANCE_ID% --region %AWS_REGION%
                     '''
 
-                    // Get current public IP
                     script {
                         env.EC2_HOST = bat(returnStdout: true, script: '@aws ec2 describe-instances --instance-ids %INSTANCE_ID% --region %AWS_REGION% --query "Reservations[0].Instances[0].PublicIpAddress" --output text').trim()
                         echo "EC2 Public IP: ${env.EC2_HOST}"
                     }
 
-                    // Allow this Jenkins machine's IP on port 22 (ignore "already exists")
                     bat '''
                     @echo off
                     for /f %%i in ('curl.exe -s https://checkip.amazonaws.com') do set MYIP=%%i
